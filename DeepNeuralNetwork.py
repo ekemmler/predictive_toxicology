@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+'''
+script to build a deep neural network using data from "submitScriptOrig.py"
+output: graphic of the model ("DNN_model.png") and training & validation plots ("DNN_training.png")
+'''
+
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split, KFold
+import sklearn.metrics 
+from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve, accuracy_score, precision_recall_curve, auc, f1_score
+from tensorflow.keras import models, layers, utils, backend as K
+import tensorflow as tf
+
+from plot_NN import *
+#from submitScriptOrig import GET_DATA #Remark: Everything in submitScriptOrig.py that is not in a function will be executed!
+
+def Recall(y_true, y_pred):
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+    recall = true_positives / (possible_positives + K.epsilon())
+    return recall
+
+def Precision(y_true, y_pred):
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
+    precision = true_positives / (predicted_positives + K.epsilon())
+    return precision
+
+def F1(y_true, y_pred):
+    precision = Precision(y_true, y_pred)
+    recall = Recall(y_true, y_pred)
+    return 2*((precision*recall)/(precision+recall+K.epsilon()))
+
+def create_model(n_features):
+    """
+    Creates a simple (mostly) unoptimized neural network with three hidden and dropout layers.
+    """
+    model = models.Sequential(name="DeepNN", layers=[
+        ### hidden layer 1
+        layers.Dense(name="h1", input_dim=n_features,
+                     units=int(round((n_features)/2)), 
+                     activation='relu'),
+        layers.Dropout(name="drop1", rate=0.2),
+        ### hidden layer 2
+        layers.Dense(name="h2", units=int(round((n_features)/4)), 
+                     activation='relu'),
+        layers.Dropout(name="drop2", rate=0.2),
+        ### hidden layer 3
+        layers.Dense(name="h3", units=int(round((n_features+10)/8)), 
+                     activation='relu'),
+        layers.Dropout(name="drop3", rate=0.2),
+        layers.Dense(name="output", units=1, activation='sigmoid')
+    ])
+    # compile the neural network
+    model.compile(optimizer='SGD', loss='mean_absolute_error', 
+                  metrics=['accuracy',F1])#,Recall,Precision])
+    return model
+
+def train_DNN(fps, act):
+    '''
+    Train and validate the model.
+    '''
+    fpsIndList = [i for i in range(0,len(fps))] 
+    trainFpsInds, testFpsInds, y_train, y_val = train_test_split(fpsIndList, act, test_size=0.20, stratify=act)
+    x_train = np.array([fps[x] for i,x in enumerate(trainFpsInds)])
+    x_val = np.array([fps[x] for i,x in enumerate(testFpsInds)])
+    n_features = x_train.shape[1]
+    model = create_model(n_features)
+    model.summary()
+    #configuration
+    bs = 32
+    ep = 1000
+    #plot
+    utils.plot_model(model, to_file='DNN_model.png', show_shapes=True, show_layer_names=True)
+    #### train model ####
+    training = model.fit(x=x_train, y=np.array(y_train), batch_size=bs, epochs=ep, verbose=0, validation_data=(x_val, np.array(y_val)))
+    #### results ####
+    print("Results")
+    print("Training Accuracy: ", round(max(training.history['accuracy']), 3))
+    print("Training F1: ", round(max(training.history['F1']), 3))
+    print("Validation Accuracy: ", round(max(training.history['val_accuracy']), 3))
+    print("Validation F1: ", round(max(training.history['val_F1']), 3))
+    #### plot ####
+    metrics = [k for k in training.history.keys() if ("loss" not in k) and ("val" not in k)]    
+    fig, ax = plt.subplots(nrows=1, ncols=2, sharey=True, figsize=(40,12))
+    ## training    
+    ax[0].set(title="Training")    
+    ax11 = ax[0].twinx()    
+    ax[0].plot(training.history['loss'], color='black')    
+    ax[0].set_xlabel('Epochs')    
+    ax[0].set_ylabel('Loss', color='black')    
+    for metric in metrics:        
+        ax11.plot(training.history[metric], label=metric)    
+    ax11.set_ylabel("Score", color='steelblue')    
+    ax11.legend()
+    ## validation    
+    ax[1].set(title="Validation")    
+    ax22 = ax[1].twinx()    
+    ax[1].plot(training.history['val_loss'], color='black')    
+    ax[1].set_xlabel('Epochs')    
+    ax[1].set_ylabel('Loss', color='black')    
+    for metric in metrics:          
+        ax22.plot(training.history['val_'+metric], label=metric)    
+    ax22.set_ylabel("Score", color="steelblue")  
+    plt.savefig('DNN_training.png', dpi=200)
+
+### run the model ###
+#global dataSet
+#global sampling
+#dataSet = "AhR" 
+#sampling = "kMedoids2" 
+#trainFps, trainAct = GET_DATA(dataSet,sampling=sampling)
+#train_DNN(trainFps, trainAct)

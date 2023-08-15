@@ -29,6 +29,8 @@ import matplotlib as mpl
 mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 
+from DeepNeuralNetwork import train_DNN
+
 """
 This code was written in Python 3.6.0 on a MacBook running macOS Sierra, version 10.12.
 Its purpose is to evaluate different sampling techniques by using the sampled or 
@@ -1228,8 +1230,13 @@ if not ex_data:
             newMinNames = minNames + synNames
         PROD_CSV(fileName_data,newMinFps,newMinNames,minClass)
     print("Done", end="\n")
-# Hyper-Parameter optimization.
+
+# Get Data
 trainFps, trainAct = GET_DATA(dataSet,sampling=sampling)
+# Deep Neural Network model
+train_DNN(trainFps, trainAct)
+
+# Hyper-Parameter optimization.
 ex_bp,fileName_bp = CHECK_FOR(dataSet,sampling,bp=1)
 if not ex_bp:
     print("Hyper-Parameter optimization...", end="",flush=True)
