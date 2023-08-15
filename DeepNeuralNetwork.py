@@ -77,7 +77,7 @@ def train_DNN(fps, act):
     #### train model ####
     training = model.fit(x=x_train, y=np.array(y_train), batch_size=bs, epochs=ep, verbose=0, validation_data=(x_val, np.array(y_val)))
     #### results ####
-    print("Results")
+    print("Training DNN")
     print("Training Accuracy: ", round(max(training.history['accuracy']), 3))
     print("Training F1: ", round(max(training.history['F1']), 3))
     print("Validation Accuracy: ", round(max(training.history['val_accuracy']), 3))
