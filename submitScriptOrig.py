@@ -29,7 +29,7 @@ import matplotlib as mpl
 mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 
-from DeepNeuralNetwork import train_DNN
+from DeepNeuralNetwork import train_DNN, test_DNN
 
 """
 This code was written in Python 3.6.0 on a MacBook running macOS Sierra, version 10.12.
@@ -1233,8 +1233,11 @@ if not ex_data:
 
 # Get Data
 trainFps, trainAct = GET_DATA(dataSet,sampling=sampling)
+
 # Deep Neural Network model
-train_DNN(trainFps, trainAct)
+DNN_model = train_DNN(trainFps, trainAct)
+testFps, testAct = GET_DATA(dataSet, sampling="test")
+DNN_res = test_DNN(DNN_model, testFps, testAct)
 
 # Hyper-Parameter optimization.
 ex_bp,fileName_bp = CHECK_FOR(dataSet,sampling,bp=1)

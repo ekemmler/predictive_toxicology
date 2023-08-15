@@ -63,7 +63,7 @@ def train_DNN(fps, act):
     Train and validate the model.
     '''
     fpsIndList = [i for i in range(0,len(fps))] 
-    trainFpsInds, testFpsInds, y_train, y_val = train_test_split(fpsIndList, act, test_size=0.20, stratify=act)
+    trainFpsInds, testFpsInds, y_train, y_val = train_test_split(fpsIndList, act, test_size=0.10, stratify=act)
     x_train = np.array([fps[x] for i,x in enumerate(trainFpsInds)])
     x_val = np.array([fps[x] for i,x in enumerate(testFpsInds)])
     n_features = x_train.shape[1]
@@ -105,6 +105,38 @@ def train_DNN(fps, act):
         ax22.plot(training.history['val_'+metric], label=metric)    
     ax22.set_ylabel("Score", color="steelblue")  
     plt.savefig('DNN_training.png', dpi=200)
+    plt.close()
+    return training.model
+
+def test_DNN(model, fps, act):
+    '''
+    Test DNN using external data set.
+    '''
+    fps = np.array(fps)
+    act = np.array(act)
+    res = model.predict(fps)
+    compare = pd.DataFrame({'is_TRUE':np.where(act==1, True, False), 'prediction':np.where(res[:, 0]>0.75, True, False), 'prediction_value':res.tolist()})
+    tn, fp, fn, tp = confusion_matrix(compare['is_TRUE'], compare['prediction'], labels=[0, 1]).ravel()
+    print("External Validation DNN")
+    print('AUC:', round(roc_auc_score(act, res[:, 0]), 3))
+    print('Accuracy:', round((tp+tn)/(tp+fp+tn+fn), 3))
+    print('Sensitivity:', round(tp/(tp+fn), 3))
+    print('False negative Rate:', round(fn/(tp+fn), 3))
+    print('Specificity:', round(tn/(tn+fp), 3))
+    print('False positive Rate:', round(fp/(tn+fp), 3))
+    precision, recall, thresholds = precision_recall_curve(compare['is_TRUE'], compare['prediction'])
+    area = sklearn.metrics.auc(recall, precision)
+    f1 = f1_score(compare['is_TRUE'], compare['prediction'])
+    print(f'F1: %0.3f' % f1)
+    fpr, tpr, thresholds = roc_curve(compare['is_TRUE'], compare['prediction'])
+    plt.figure()
+    plt.plot(fpr, tpr)
+    plt.title('ROC curve')
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.savefig('DNN_externalValidation_ROCcurve.png', dpi=200)
+    plt.close()
+    return compare
 
 ### run the model ###
 #global dataSet
