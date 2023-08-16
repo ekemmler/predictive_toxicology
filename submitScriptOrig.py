@@ -29,7 +29,7 @@ import matplotlib as mpl
 mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 
-from DeepNeuralNetwork import train_DNN, test_DNN
+from DeepNeuralNetwork import train_DNN, test_DNN, k_fold_DNN
 
 """
 This code was written in Python 3.6.0 on a MacBook running macOS Sierra, version 10.12.
@@ -1237,6 +1237,7 @@ trainFps, trainAct = GET_DATA(dataSet,sampling=sampling)
 # Deep Neural Network model
 DNN_model = train_DNN(trainFps, trainAct)
 testFps, testAct = GET_DATA(dataSet, sampling="test")
+k_fold_DNN(10, trainFps, trainAct)
 DNN_res = test_DNN(DNN_model, testFps, testAct)
 
 # Hyper-Parameter optimization.

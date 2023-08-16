@@ -12,6 +12,7 @@ import sklearn.metrics
 from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve, accuracy_score, precision_recall_curve, auc, f1_score
 from tensorflow.keras import models, layers, utils, backend as K
 import tensorflow as tf
+import statistics
 
 from plot_NN import *
 #from submitScriptOrig import GET_DATA #Remark: Everything in submitScriptOrig.py that is not in a function will be executed!
@@ -137,6 +138,52 @@ def test_DNN(model, fps, act):
     plt.savefig('DNN_externalValidation_ROCcurve.png', dpi=200)
     plt.close()
     return compare
+
+def k_fold_DNN(k, x, y):
+    '''
+    K-Fold cross validation for DNN.
+
+    '''
+    x = np.array(x)
+    y = np.array(y)
+    kfold = KFold(n_splits=k, shuffle=True, random_state=42)
+    auc = []
+    acc = []
+    sens = []
+    fnr = []
+    spec = []
+    fpr = []
+    auprc = []
+    f1 = []
+    for train_index, test_index in kfold.split(x):
+        kfold_x_train, kfold_x_test = x[train_index], x[test_index]
+        kfold_y_train, kfold_y_test = y[train_index], y[test_index]
+        model = create_model(x.shape[1])
+        model.fit(kfold_x_train, kfold_y_train, batch_size=32, epochs=1000, verbose=0)
+        y_pred = model.predict(kfold_x_test)
+        y_pred = np.where(y_pred[:, 0]>0.75, 1, 0)
+        kfold_y_test = tf.constant(kfold_y_test)
+        accuracy = accuracy_score(kfold_y_test, y_pred)
+        tn, fp, fn, tp = confusion_matrix(kfold_y_test, y_pred, labels=[0, 1]).ravel()
+        precision, recall, thresholds = precision_recall_curve(kfold_y_test, y_pred)
+        area = sklearn.metrics.auc(recall, precision)
+        auc.append(roc_auc_score(kfold_y_test, y_pred))
+        acc.append(accuracy)
+        sens.append(tp/(tp+fn))
+        fnr.append(fn/(tp+fn))
+        spec.append(tn/(tn+fp))
+        fpr.append(fp/(tn+fp))
+        auprc.append(area)
+        f1.append(f1_score(kfold_y_test, y_pred))
+    print(k, '-Fold Cross Validation DNN')
+    print('AUC:', round(statistics.mean(auc), 3))
+    print('Accuracy:', round(statistics.mean(acc), 3))
+    print('Sensitivity:', round(statistics.mean(sens), 3))
+    print('False negative Rate:', round(statistics.mean(fnr), 3))
+    print('Specificity:', round(statistics.mean(spec), 3))
+    print('False positive Rate:', round(statistics.mean(fpr), 3))
+    print('Area Under PR Curve(AP):', round(statistics.mean(auprc), 3))
+    print('F1:', round(statistics.mean(f1), 3))
 
 ### run the model ###
 #global dataSet
