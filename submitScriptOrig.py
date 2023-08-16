@@ -13,7 +13,7 @@ from rdkit.Chem import MACCSkeys
 from rdkit.Chem import rdMolDescriptors
 from rdkit.Chem.MACCSkeys import GenMACCSKeys
 
-from sklearn.externals import joblib
+import joblib
 from sklearn.model_selection import KFold
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import GridSearchCV
@@ -742,16 +742,16 @@ def FIND_BEST_RF(fileName,fps,act,sampling):
     clfRF=RandomForestClassifier()
     maxD = [i*100 for i in range(2,9)]
     nEst = 1000
-    classWeights = compute_class_weight("balanced",[0,1],trainAct)
-    classWDict = {0:classWeights[0], 1:classWeights[1]}
+    classWeights = compute_class_weight(class_weight = "balanced", classes = [0,1], y = trainAct)
+    classWDict = dict(zip([0,1], trainAct))
     param_grid_RF = { 
         "max_depth": maxD,
 	    "n_estimators": [nEst],
-	    "max_features": ["auto"],
+	    "max_features": ["sqrt"],
 	    "class_weight": [classWDict],
 	    "warm_start": [True],
         "criterion": ["gini","entropy"]} 
-    rfGridSearch = GridSearchCV(estimator=clfRF, param_grid=param_grid_RF, cv=2).fit(trainFps, trainAct)
+    rfGridSearch = GridSearchCV(estimator=clfRF, param_grid=param_grid_RF, cv=2, error_score = 'raise').fit(trainFps, trainAct)
     probas = rfGridSearch.predict_proba(testFps)
     posProbas = [probas[j][1] for j, x in enumerate(probas)]
     rocAuc = roc_auc_score(testAct,posProbas)
@@ -1234,12 +1234,6 @@ if not ex_data:
 # Get Data
 trainFps, trainAct = GET_DATA(dataSet,sampling=sampling)
 
-# Deep Neural Network model
-DNN_model = train_DNN(trainFps, trainAct)
-testFps, testAct = GET_DATA(dataSet, sampling="test")
-k_fold_DNN(10, trainFps, trainAct)
-DNN_res = test_DNN(DNN_model, testFps, testAct)
-
 # Hyper-Parameter optimization.
 ex_bp,fileName_bp = CHECK_FOR(dataSet,sampling,bp=1)
 if not ex_bp:
@@ -1277,3 +1271,9 @@ if ex_allTab:
     PROD_ALLM_PLOT(dataSet,allM = 1)
     PROD_ALLM_PLOT(dataSet,allM = 2)
     print("Done", end="\n")
+
+# Deep Neural Network model
+DNN_model = train_DNN(trainFps, trainAct)
+testFps, testAct = GET_DATA(dataSet, sampling="test")
+k_fold_DNN(10, trainFps, trainAct)
+DNN_res = test_DNN(DNN_model, testFps, testAct)

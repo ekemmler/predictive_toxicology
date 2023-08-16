@@ -175,7 +175,7 @@ def k_fold_DNN(k, x, y):
         fpr.append(fp/(tn+fp))
         auprc.append(area)
         f1.append(f1_score(kfold_y_test, y_pred))
-    print(k, '-Fold Cross Validation DNN')
+    print(k, 'Fold Cross Validation DNN')
     print('AUC:', round(statistics.mean(auc), 3))
     print('Accuracy:', round(statistics.mean(acc), 3))
     print('Sensitivity:', round(statistics.mean(sens), 3))
