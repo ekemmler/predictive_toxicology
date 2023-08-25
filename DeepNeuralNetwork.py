@@ -130,14 +130,15 @@ def test_DNN(model, fps, act):
     f1 = f1_score(compare['is_TRUE'], compare['prediction'])
     print(f'F1: %0.3f' % f1)
     fpr, tpr, thresholds = roc_curve(compare['is_TRUE'], compare['prediction'])
-    plt.figure()
-    plt.plot(fpr, tpr)
-    plt.title('ROC curve')
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.savefig('DNN_externalValidation_ROCcurve.png', dpi=200)
-    plt.close()
-    return compare
+    res = [round(roc_auc_score(act, res[:, 0]), 3), round((tp/(tp+fn) + tn/(tn+fp))/2, 3), round((tp+tn)/(tp+fp+tn+fn), 3), round(tp/(tp+fn), 3), round(tn/(tn+fp), 3), f1]
+    #plt.figure()
+    #plt.plot(fpr, tpr)
+    #plt.title('ROC curve')
+    #plt.xlabel('False Positive Rate')
+    #plt.ylabel('True Positive Rate')
+    #plt.savefig('DNN_externalValidation_ROCcurve.png', dpi=200)
+    #plt.close()
+    return res, compare
 
 def k_fold_DNN(k, x, y):
     '''
@@ -148,6 +149,7 @@ def k_fold_DNN(k, x, y):
     y = np.array(y)
     kfold = KFold(n_splits=k, shuffle=True, random_state=42)
     auc = []
+    bacc =[]
     acc = []
     sens = []
     fnr = []
@@ -168,6 +170,7 @@ def k_fold_DNN(k, x, y):
         precision, recall, thresholds = precision_recall_curve(kfold_y_test, y_pred)
         area = sklearn.metrics.auc(recall, precision)
         auc.append(roc_auc_score(kfold_y_test, y_pred))
+        bacc.append((tp/(tp+fn) + tn/(tn+fp))/2)
         acc.append(accuracy)
         sens.append(tp/(tp+fn))
         fnr.append(fn/(tp+fn))
@@ -175,6 +178,7 @@ def k_fold_DNN(k, x, y):
         fpr.append(fp/(tn+fp))
         auprc.append(area)
         f1.append(f1_score(kfold_y_test, y_pred))
+    kfold_res = pd.DataFrame(list(zip(auc, bacc, acc, sens, fnr, spec, fpr, auprc, f1)), columns=['AUC', 'Balanced_Accuracy', 'Accuracy', 'Sensitivity', 'FNR', 'Specificity', 'FPR', 'AUC_PR', 'F1'])
     print(k, 'Fold Cross Validation DNN')
     print('AUC:', round(statistics.mean(auc), 3))
     print('Accuracy:', round(statistics.mean(acc), 3))
@@ -184,6 +188,7 @@ def k_fold_DNN(k, x, y):
     print('False positive Rate:', round(statistics.mean(fpr), 3))
     print('Area Under PR Curve(AP):', round(statistics.mean(auprc), 3))
     print('F1:', round(statistics.mean(f1), 3))
+    return kfold_res
 
 ### run the model ###
 #global dataSet

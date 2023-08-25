@@ -24,6 +24,7 @@ from sklearn.utils.class_weight import compute_class_weight
 
 from openpyxl import Workbook
 from openpyxl import load_workbook
+import statistics
 
 import matplotlib as mpl 
 mpl.use('TkAgg')
@@ -1274,6 +1275,11 @@ if ex_allTab:
 
 # Deep Neural Network model
 DNN_model = train_DNN(trainFps, trainAct)
-testFps, testAct = GET_DATA(dataSet, sampling="test")
-k_fold_DNN(10, trainFps, trainAct)
-DNN_res = test_DNN(DNN_model, testFps, testAct)
+joblib.dump(DNN_model, dataSet+'-'+'DNN'+'-'+sampling+'.pkl') 
+testFps, testAct = GET_DATA(dataSet, sampling=sampling)
+kfold_res = k_fold_DNN(10, trainFps, trainAct)
+DNN_ext_res, ext_compare = test_DNN(DNN_model, testFps, testAct)
+dnn_mean = kfold_res.drop(["FNR", "FPR", "AUC_PR"], axis=1).apply(statistics.mean, axis=0).to_list()
+dnn_stdev = kfold_res.drop(["FNR", "FPR", "AUC_PR"], axis=1).apply(statistics.stdev, axis=0).to_list()
+dnn_max = kfold_res.drop(["FNR", "FPR", "AUC_PR"], axis=1).apply(max, axis=0).to_list()
+PROD_TAB(dnn_mean, dnn_stdev, dnn_max, DNN_ext_res, sampling, dataSet+'-'+'DNN'+'-'+sampling+'-'+'Validation-Table.xlsx')
