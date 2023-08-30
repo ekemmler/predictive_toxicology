@@ -37,6 +37,8 @@ This code was written in Python 3.6.0 on a MacBook running macOS Sierra, version
 Its purpose is to evaluate different sampling techniques by using the sampled or 
 unsampled data to train a Random Forest Model. 
 
+This code has been successfully run on Python 3.11 using rosetta shell on MacOS- ventura. 
+
 Given a dataset a specified sampling technique is performed. 
 This is followed by a hyper parameter optimization to increase the model performance.
 Using the optimal hyper parameters a 10-fold cross validation is performed.
@@ -66,8 +68,8 @@ SMOTE:      Implementation of the SMOTE-N introduced in [N. V. Chawla, K. W. Bow
 
 global dataSet
 global sampling
-dataSet = "AhR" 
-sampling = "kMedoids2" 
+dataSet = "Dili" 
+sampling = "randOS" 
 
 #=======#
 # Input #
