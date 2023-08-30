@@ -40,6 +40,6 @@ Multiple Python packages are needed to execute the scripts. To install Python pa
 - tkinter
 - tensorflow
 ## Run the Script
-To run the script, just download the repository as .zip, unzip it and run 'submitScriptOrig.py' either by typing 'python3 submitScriptOrig.py' in your terminal/cmd/powershell or by klicking on 'Run file' in Spyder/PyCharm. The algorithm creates multiple output directory with sampled data, result in tables and plots.
+To run the script, just download the repository as .zip, unzip it and run 'submitScriptOrig.py' either by typing 'python3 submitScriptOrig.py' in your terminal/cmd/rosettashell or by clicking on 'Run file' in Spyder/PyCharm. The algorithm creates multiple output directory with sampled data, result in tables and plots.
 
 Different sampling methods can be tested by changing the sampling variable in 'submitScriptOrig.py' (line 69). The default sampling method is randOS. 
