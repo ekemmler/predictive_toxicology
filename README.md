@@ -22,4 +22,4 @@ Multiple python packages are needed to execute the scripts. To install python pa
 ## Run the Script
 To run the script, just download the repository as .zip, unzip it and run 'submitScriptOrig.py' either by typing 'python3 submitScriptOrig.py' in your terminal/cmd/powershell or by klicking on 'Run file' in Spyder. The algorithm creates multiple output directorys with sampled data, result tabels and plots.
 
-Different sampling methods can be tested by changing the sampling variable in 'submitScriptOrig.py' (line 69). Default sampling method is kMedoids2. 
+Different sampling methods can be tested by changing the sampling variable in 'submitScriptOrig.py' (line 69). Default sampling method is randOS. 
